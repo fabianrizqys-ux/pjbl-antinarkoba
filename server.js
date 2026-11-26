@@ -273,11 +273,19 @@ export default {
   }
 };
 
-function corsHeaders() {
+function corsHeaders(request) {
+  const allowedOrigins = [
+    'https://pjbl-antinarkoba-g8.pages.dev',
+    'https://pjbl-antinarkoba8.pages.dev'
+  ];
+  const origin = request?.headers?.get('Origin') || '';
+  const allowOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
   return {
-    'Access-Control-Allow-Origin': 'https://pjbl-antinarkoba-g8.pages.dev',
+    'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin'
   };
 }
 
