@@ -1,4 +1,14 @@
-const API_BASE = 'https://pjbl-antinarkoba-g8.pages.dev';
+const API_BASE = 'https://pjbl-antinarkoba.group8.workers.dev';
+
+async function parseJsonSafe(response) {
+    const text = await response.text();
+    if (!text) return {};
+    try {
+        return JSON.parse(text);
+    } catch {
+        return { error: text };
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
@@ -36,9 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ username, password })
                 });
 
-                const data = await response.json();
+                const data = await parseJsonSafe(response);
 
-                if (response.ok) {
+                if (response.ok && data.user) {
                     localStorage.removeItem('userAvatar');
                     localStorage.removeItem('userScore');
                     localStorage.setItem('userName', data.user.username);
@@ -81,9 +91,9 @@ async function handleCredentialResponse(response) {
             body: JSON.stringify({ token: response.credential })
         });
 
-        const data = await res.json();
+        const data = await parseJsonSafe(res);
 
-        if (res.ok) {
+        if (res.ok && data.user) {
             localStorage.removeItem('userAvatar');
             localStorage.removeItem('userScore');
             localStorage.setItem('userName', data.user.username || googlePayload.name);
