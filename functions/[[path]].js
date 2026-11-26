@@ -1,4 +1,3 @@
-
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -20,66 +19,7 @@ export async function onRequest(context) {
       if (!username || !email || !password) {
         return jsonResponse({ error: 'Username, email, dan password wajib diisi.' }, 400, request);
       }
-    // Save Score
-  if (request.method === 'POST' && path === '/api/save-score') {
-    try {
-      const { email, username, score } = await request.json();
-      const safeScore = Math.max(0, Number(score) || 0);
-  
-      if (!email && !username) {
-        return jsonResponse({ error: 'Email atau username tidak valid.' }, 400, request);
-      }
-  
-      const updated = email
-        ? await queryNeon(
-            env.DATABASE_URL,
-            'UPDATE users SET quiz_score = GREATEST(COALESCE(quiz_score, 0), $1) WHERE email = $2 RETURNING quiz_score',
-            [safeScore, email]
-          )
-        : await queryNeon(
-            env.DATABASE_URL,
-            'UPDATE users SET quiz_score = GREATEST(COALESCE(quiz_score, 0), $1) WHERE username = $2 RETURNING quiz_score',
-            [safeScore, username]
-          );
 
-    if (updated.rows.length === 0) {
-      return jsonResponse({ error: 'User tidak ditemukan di database.' }, 404, request);
-    }
-
-    return jsonResponse({
-      success: true,
-      message: 'Skor berhasil disimpan ke database!',
-      quiz_score: Number(updated.rows[0]?.quiz_score ?? safeScore)
-    }, 200, request);
-  } catch (err) {
-    console.error('Save score error:', err);
-    return jsonResponse({ error: 'Gagal menyimpan skor ke database.' }, 500, request);
-  }
-}
-
-// Get Score
-if (request.method === 'GET' && path === '/api/get-score') {
-  try {
-    const email = url.searchParams.get('email');
-    const username = url.searchParams.get('username');
-
-    if (!email && !username) {
-      return jsonResponse({ error: 'Parameter email atau username wajib ada.' }, 400, request);
-    }
-
-    const result = email
-      ? await queryNeon(env.DATABASE_URL, 'SELECT quiz_score FROM users WHERE email = $1', [email])
-      : await queryNeon(env.DATABASE_URL, 'SELECT quiz_score FROM users WHERE username = $1', [username]);
-
-    if (result.rows.length > 0) {
-      return jsonResponse({ success: true, quiz_score: Number(result.rows[0].quiz_score) || 0 }, 200, request);
-    }
-    return jsonResponse({ error: 'User tidak ditemukan.' }, 404, request);
-  } catch (err) {
-    console.error('Get score error:', err);
-    return jsonResponse({ error: 'Kesalahan server.' }, 500, request);
-  }
-}
       const existing = await queryNeon(
         env.DATABASE_URL,
         'SELECT id FROM users WHERE username = $1 OR email = $2',
@@ -226,26 +166,37 @@ if (request.method === 'GET' && path === '/api/get-score') {
   // Save Score
   if (request.method === 'POST' && path === '/api/save-score') {
     try {
-      const { email, score } = await request.json();
-      if (!email) {
-        return jsonResponse({ error: 'Email tidak valid.' }, 400, request);
+      const { email, username, score } = await request.json();
+      const safeScore = Math.max(0, Number(score) || 0);
+
+      if (!email && !username) {
+        return jsonResponse({ error: 'Email atau username tidak valid.' }, 400, request);
       }
 
-      const safeScore = Math.max(0, Number(score) || 0);
-      const updated = await queryNeon(
-        env.DATABASE_URL,
-        'UPDATE users SET quiz_score = GREATEST(COALESCE(quiz_score, 0), $1) WHERE email = $2 RETURNING quiz_score',
-        [safeScore, email]
-      );
+      const updated = email
+        ? await queryNeon(
+            env.DATABASE_URL,
+            'UPDATE users SET quiz_score = GREATEST(COALESCE(quiz_score, 0), $1) WHERE email = $2 RETURNING quiz_score',
+            [safeScore, email]
+          )
+        : await queryNeon(
+            env.DATABASE_URL,
+            'UPDATE users SET quiz_score = GREATEST(COALESCE(quiz_score, 0), $1) WHERE username = $2 RETURNING quiz_score',
+            [safeScore, username]
+          );
+
+      if (updated.rows.length === 0) {
+        return jsonResponse({ error: 'User tidak ditemukan di database.' }, 404, request);
+      }
 
       return jsonResponse({
         success: true,
         message: 'Skor berhasil disimpan ke database!',
-        quiz_score: updated.rows[0]?.quiz_score ?? safeScore
+        quiz_score: Number(updated.rows[0]?.quiz_score ?? safeScore)
       }, 200, request);
     } catch (err) {
       console.error('Save score error:', err);
-      return jsonResponse({ error: 'Terjadi kesalahan pada server saat menyimpan skor.' }, 500, request);
+      return jsonResponse({ error: 'Gagal menyimpan skor ke database.' }, 500, request);
     }
   }
 
@@ -253,9 +204,18 @@ if (request.method === 'GET' && path === '/api/get-score') {
   if (request.method === 'GET' && path === '/api/get-score') {
     try {
       const email = url.searchParams.get('email');
-      const result = await queryNeon(env.DATABASE_URL, 'SELECT quiz_score FROM users WHERE email = $1', [email]);
+      const username = url.searchParams.get('username');
+
+      if (!email && !username) {
+        return jsonResponse({ error: 'Parameter email atau username wajib ada.' }, 400, request);
+      }
+
+      const result = email
+        ? await queryNeon(env.DATABASE_URL, 'SELECT quiz_score FROM users WHERE email = $1', [email])
+        : await queryNeon(env.DATABASE_URL, 'SELECT quiz_score FROM users WHERE username = $1', [username]);
+
       if (result.rows.length > 0) {
-        return jsonResponse({ success: true, quiz_score: result.rows[0].quiz_score || 0 }, 200, request);
+        return jsonResponse({ success: true, quiz_score: Number(result.rows[0].quiz_score) || 0 }, 200, request);
       }
       return jsonResponse({ error: 'User tidak ditemukan.' }, 404, request);
     } catch (err) {
@@ -405,3 +365,9 @@ async function sendOtpEmail(env, toEmail, code) {
     throw new Error(`Resend error: ${body}`);
   }
 }
+```[cite: 4]
+
+### Catatan Singkat Sebelum Tes
+* Pastikan `dashboard.html` memakai `const API_BASE = '';`[cite: 5].
+* Pastikan kolom `quiz_score` dan `avatar_url` sudah ada di tabel `users` Neon[cite: 4, 5].
+* Setelah *commit* ke `functions/[[path]].js` dan *deploy* Pages selesai, selesaikan kuis sampai muncul pesan skor akhir lalu cek kolom `quiz_score` di Neon.
