@@ -275,7 +275,7 @@ export default {
 
 function corsHeaders() {
   return {
-    'Access-Control-Allow-Origin': 'https://pjbl-antinarkoba.group8.workers.dev/',
+    'Access-Control-Allow-Origin': 'https://pjbl-antinarkoba-g8.pages.dev/',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   };
