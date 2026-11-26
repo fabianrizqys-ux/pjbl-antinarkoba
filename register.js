@@ -1,3 +1,15 @@
+const API_BASE = 'https://pjbl-antinarkoba.group8.workers.dev';
+
+async function parseJsonSafe(response) {
+    const text = await response.text();
+    if (!text) return {};
+    try {
+        return JSON.parse(text);
+    } catch {
+        return { error: text };
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('registerForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -22,13 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
-            const response = await fetch('https://pjbl-antinarkoba-g8.pages.dev', {
+            const response = await fetch(`${API_BASE}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
             });
 
-            const data = await response.json();
+            const data = await parseJsonSafe(response);
 
             if (response.ok) {
                 localStorage.setItem('userName', username);
