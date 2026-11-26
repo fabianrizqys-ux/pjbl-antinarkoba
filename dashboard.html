@@ -1155,35 +1155,36 @@
                 console.error('Gagal memuat skor dari database:', err);
             }
         }
-
         async function saveScoreToDatabase(finalScore) {
-            const cleanScore = Math.max(0, Number(finalScore) || 0);
-            const email = localStorage.getItem('userEmail');
-
-            const prevBest = Number(localStorage.getItem('userScore')) || 0;
-            const bestScore = Math.max(prevBest, cleanScore);
-            localStorage.setItem('userScore', bestScore);
-            updateAchievementProgress(bestScore);
-
-            if (!email) return;
-
-            try {
+              const cleanScore = Math.max(0, Number(finalScore) || 0);
+              const email = localStorage.getItem('userEmail') || '';
+              const username = localStorage.getItem('userName') || '';
+            
+              const prevBest = Number(localStorage.getItem('userScore')) || 0;
+              const bestScore = Math.max(prevBest, cleanScore);
+              localStorage.setItem('userScore', bestScore);
+              updateAchievementProgress(bestScore);
+            
+              if (!email && !username) return;
+            
+              try {
                 const res = await fetch(`${API_BASE}/api/save-score`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, score: cleanScore })
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email, username, score: cleanScore })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    const dbScore = Number(data.quiz_score ?? bestScore) || 0;
-                    localStorage.setItem('userScore', dbScore);
-                    updateAchievementProgress(dbScore);
+                  const dbScore = Number(data.quiz_score ?? bestScore) || 0;
+                  localStorage.setItem('userScore', dbScore);
+                  updateAchievementProgress(dbScore);
+                } else {
+                  console.warn('Respon save-score:', data);
                 }
-            } catch (err) {
+              } catch (err) {
                 console.error('Gagal simpan skor ke DB:', err);
+              }
             }
-        }
-
         function loadQuiz() {
             const qText = document.getElementById('question-text');
             const optsContainer = document.getElementById('options-container');
