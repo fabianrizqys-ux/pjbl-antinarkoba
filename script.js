@@ -1,4 +1,4 @@
-const API_BASE = 'https://pjbl-antinarkoba.group8.workers.dev';
+const API_BASE = 'https://pjbl-antinarkoba-g8.pages.dev/';
 
 async function parseJsonSafe(response) {
     const text = await response.text();
