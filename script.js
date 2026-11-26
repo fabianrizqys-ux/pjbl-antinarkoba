@@ -1,4 +1,4 @@
-const API_BASE = '';
+const API_BASE = 'https://pjbl-antinarkoba.group8.workers.dev/';
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
