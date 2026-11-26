@@ -971,6 +971,7 @@
             localStorage.removeItem('userName');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userScore');
+            localStorage.removeItem('userAchievement');
             localStorage.removeItem('userAvatar');
             window.location.href = 'index.html';
         }
@@ -1096,9 +1097,12 @@
         let currentQuestion = 0;
         let score = 0;
 
-        function updateAchievementProgress(currentScore = score) {
+        function updateAchievementProgress(currentScore = score, explicitAchievement = null) {
             const cleanScore = Math.max(0, Number(currentScore) || 0);
-            const percentage = Math.min(100, Math.round((cleanScore / MAX_QUIZ_SCORE) * 100));
+            const computedPercent = Math.min(100, Math.round((cleanScore / MAX_QUIZ_SCORE) * 100));
+            const percentage = explicitAchievement !== null && explicitAchievement !== undefined
+                ? Math.max(0, Math.min(100, Number(explicitAchievement) || 0))
+                : computedPercent;
 
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
@@ -1118,9 +1122,10 @@
         async function loadUserProfileAndScore(email, username) {
             const cachedAvatar = localStorage.getItem('userAvatar') || '';
             const cachedScore = Number(localStorage.getItem('userScore')) || 0;
+            const cachedAchievement = Number(localStorage.getItem('userAchievement'));
 
             applyAvatars(cachedAvatar, username);
-            updateAchievementProgress(cachedScore);
+            updateAchievementProgress(cachedScore, Number.isNaN(cachedAchievement) ? null : cachedAchievement);
 
             if (!email && !username) return;
 
@@ -1160,8 +1165,12 @@
                 const scoreData = await scoreRes.json();
                 if (scoreRes.ok && scoreData.success) {
                     const dbScore = Number(scoreData.quiz_score) || 0;
+                    const dbAchievement = scoreData.achievement !== undefined
+                        ? Number(scoreData.achievement) || 0
+                        : Math.min(100, Math.round((dbScore / MAX_QUIZ_SCORE) * 100));
                     localStorage.setItem('userScore', dbScore);
-                    updateAchievementProgress(dbScore);
+                    localStorage.setItem('userAchievement', dbAchievement);
+                    updateAchievementProgress(dbScore, dbAchievement);
                 }
             } catch (err) {
                 console.error('Gagal memuat skor dari database:', err);
@@ -1175,8 +1184,10 @@
 
             const prevBest = Number(localStorage.getItem('userScore')) || 0;
             const bestScore = Math.max(prevBest, cleanScore);
+            const bestAchievement = Math.min(100, Math.round((bestScore / MAX_QUIZ_SCORE) * 100));
             localStorage.setItem('userScore', bestScore);
-            updateAchievementProgress(bestScore);
+            localStorage.setItem('userAchievement', bestAchievement);
+            updateAchievementProgress(bestScore, bestAchievement);
 
             if (!email && !username) return;
 
@@ -1189,8 +1200,12 @@
                 const data = await res.json();
                 if (res.ok && data.success) {
                     const dbScore = Number(data.quiz_score ?? bestScore) || 0;
+                    const dbAchievement = data.achievement !== undefined
+                        ? Number(data.achievement) || 0
+                        : Math.min(100, Math.round((dbScore / MAX_QUIZ_SCORE) * 100));
                     localStorage.setItem('userScore', dbScore);
-                    updateAchievementProgress(dbScore);
+                    localStorage.setItem('userAchievement', dbAchievement);
+                    updateAchievementProgress(dbScore, dbAchievement);
                 } else {
                     console.warn('Respon save-score:', data);
                 }
@@ -1263,7 +1278,8 @@
             currentQuestion = 0;
             score = 0;
             localStorage.setItem('userScore', '0');
-            updateAchievementProgress(0);
+            localStorage.setItem('userAchievement', '0');
+            updateAchievementProgress(0, 0);
             loadQuiz();
         }
 
@@ -1496,4 +1512,3 @@
 </body>
 </html>
 ```[cite: 4]
-
