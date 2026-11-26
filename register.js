@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
-            const response = await fetch('https://pjbl-antinarkoba-g8.pages.dev/', {
+            const response = await fetch('https://pjbl-antinarkoba-g8.pages.dev', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
