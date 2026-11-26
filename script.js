@@ -1,3 +1,5 @@
+const API_BASE = '';
+
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -28,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
 
             try {
-                const response = await fetch('http://localhost:5000/api/login', {
+                const response = await fetch(`${API_BASE}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -37,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok) {
+                    localStorage.removeItem('userAvatar');
+                    localStorage.removeItem('userScore');
                     localStorage.setItem('userName', data.user.username);
                     if (data.user.email) {
                         localStorage.setItem('userEmail', data.user.email);
@@ -69,10 +73,9 @@ async function handleCredentialResponse(response) {
     }
 
     try {
-        // Ambil email langsung dari payload JWT Google sebagai cadangan utama
         const googlePayload = JSON.parse(atob(response.credential.split('.')[1]));
 
-        const res = await fetch('http://localhost:5000/api/google-login', {
+        const res = await fetch(`${API_BASE}/api/google-login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: response.credential })
@@ -81,6 +84,8 @@ async function handleCredentialResponse(response) {
         const data = await res.json();
 
         if (res.ok) {
+            localStorage.removeItem('userAvatar');
+            localStorage.removeItem('userScore');
             localStorage.setItem('userName', data.user.username || googlePayload.name);
             localStorage.setItem('userEmail', data.user.email || googlePayload.email);
             window.location.href = 'dashboard.html';
