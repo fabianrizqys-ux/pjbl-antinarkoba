@@ -1223,21 +1223,22 @@
             const currentQ = quizData[currentQuestion];
             const popup = document.getElementById('quizPopup');
             const optionButtons = document.querySelectorAll('.option-btn');
-
+        
             optionButtons.forEach(btn => btn.disabled = true);
-
+        
             if (selectedIndex === currentQ.correct) {
                 score += 10;
                 popup.innerText = "✔ Jawaban Benar!";
                 popup.className = "quiz-popup success";
+                saveScoreToDatabase(score);
             } else {
                 popup.innerText = "✖ Jawaban Kurang Tepat!";
                 popup.className = "quiz-popup error";
             }
-
+        
             popup.style.display = 'block';
             updateAchievementProgress(score);
-
+        
             setTimeout(() => {
                 currentQuestion++;
                 loadQuiz();
